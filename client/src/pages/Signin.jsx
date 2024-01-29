@@ -1,12 +1,14 @@
-import { Alert, Button, Label, TextInput } from "flowbite-react";
 import React, { useState } from "react";
+import { Alert, Button, Label, TextInput } from "flowbite-react";
 import { Link, useNavigate } from "react-router-dom";
+import { signInStart, signInSuccess, signInFailure } from "../redux/user/userslice";
+import { useDispatch, useSelector } from "react-redux";
 
 export default function Signin() {
   const [formData, setFormData] = useState({});
-  const [errorMessage, setErrorMessage] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const { loading, error: errorMessage } = useSelector((state) => state.user);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.id]: e.target.value.trim() });
@@ -14,14 +16,12 @@ export default function Signin() {
 
   const submitHandler = async (e) => {
     e.preventDefault();
-    setLoading(true);
-
+    if (!formData.email || !formData.password) {
+      dispatch(signInFailure('Please fill out all the fields'));
+      return;
+    }
     try {
-      setLoading(true);
-      setErrorMessage(null);
-      if (!formData.email || !formData.password) {
-        throw new Error("Please fill out all the fields.");
-      }
+      dispatch(signInStart());
 
       const res = await fetch("/api/auth/signin", {
         method: "POST",
@@ -29,28 +29,21 @@ export default function Signin() {
         body: JSON.stringify(formData),
       });
 
+      const data = await res.json();
       if (!res.ok) {
-        throw new Error("Signup failed. Please try again.");
+        throw new Error(data.message || "Sign in failed. Please try again.");
       }
 
-      const data = await res.json();
-      if (data.success === false) {
-        return setErrorMessage(data.message);
-      }
-      if (res.ok) {
-        navigate("/Home");
-      }
+      dispatch(signInSuccess());
+      navigate("/Home");
     } catch (error) {
-      setErrorMessage(error.message);
-    } finally {
-      setLoading(false);
+      dispatch(signInFailure(error.message));
     }
   };
 
   return (
     <div className="mt-20 mb-20">
       <div className="gap-5 flex p-3 max-w-3xl mx-auto flex-col md:flex-row md:items-center">
-        {/*left*/}
         <div className="flex-1">
           <Link to="/Home" className="font-bold dark:text-white text-4xl">
             <span className="ml-2 mr-2 px-3 py-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-lg text-white">
@@ -66,11 +59,10 @@ export default function Signin() {
             engineering and the art of turning ideas into lines of code."
           </p>
         </div>
-        {/*right*/}
         <div className="flex-1">
           <div className="flex flex-col gap-4">
             <div>
-              
+              {/* You can add any additional content here */}
             </div>
             <div>
               <Label value="Your Email" />
@@ -91,14 +83,14 @@ export default function Signin() {
               />
             </div>
             <Button
-              gradientDuoTone="purpleToPink"
+gradientDuoTone="purpleToPink"
               type="submit"
               onClick={submitHandler}
               disabled={loading}
             >
               {loading ? (
                 <>
-                  <spinner size="sm" />
+<spinner size="sm" />
                   <span className="pl-3">Signing In....</span>
                 </>
               ) : (
@@ -112,7 +104,6 @@ export default function Signin() {
                 Sign Up
               </Link>
             </div>
-
             {errorMessage && (
               <Alert className="mt-5" color="failure">
                 {errorMessage}
