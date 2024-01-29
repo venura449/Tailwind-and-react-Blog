@@ -71,7 +71,7 @@ export default function FooterComponent() {
 
           {/* Bottom */}
           <div className="mt-4 flex flex-col items-center justify-center">
-            <div className="text-md text-gray-600">2024 © Copyright-V4Ars</div>
+            <div className="text-md text-gray-600">2024 © Developed By "Venura Jayasingha"</div>
             <div>
               <Link to="/privacy-policy">Privacy Policy</Link> |{" "}
               <Link to="/terms">Terms & Conditions</Link>
